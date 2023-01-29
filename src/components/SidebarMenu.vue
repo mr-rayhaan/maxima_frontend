@@ -2,9 +2,7 @@
 import { shallowRef } from "vue";
 import { RouterLink } from "vue-router";
 import IconAngle from "./icons/IconAngle.vue";
-import IconEmail from "./icons/IconEmail.vue";
 import IconEmployeeGroup from "./icons/IconEmployeeGroup.vue";
-import IconExclamation from "./icons/IconExclamation.vue";
 import IconHome from "./icons/IconHome.vue";
 
 const isSidebarOpen = shallowRef<Boolean>(false);
@@ -37,7 +35,7 @@ function toggleSidebar() {
         </li>
       </ul>
 
-      <h4 :transparent="!isSidebarOpen">Menu</h4>
+      <h4 :transparent="!isSidebarOpen" style="color: white">Menu</h4>
 
       <ul>
         <li>
@@ -50,25 +48,9 @@ function toggleSidebar() {
         </li>
         <li>
           <router-link to="/manage-books">
-            <IconExclamation />
-            <Transition name="fade">
-              <span v-show="isSidebarOpen">Manage Books</span>
-            </Transition>
-          </router-link>
-        </li>
-        <li>
-          <router-link to="/team">
             <IconEmployeeGroup />
             <Transition name="fade">
-              <span v-show="isSidebarOpen">Team</span>
-            </Transition>
-          </router-link>
-        </li>
-        <li>
-          <router-link to="/contact">
-            <IconEmail />
-            <Transition name="fade">
-              <span v-show="isSidebarOpen">Contact</span>
+              <span v-show="isSidebarOpen">Manage Books</span>
             </Transition>
           </router-link>
         </li>
@@ -127,6 +109,7 @@ li {
     column-gap: 0.75rem;
     position: relative;
     padding-block: 0.5rem;
+    color: aliceblue;
   }
 
   a.router-link-exact-active::after {

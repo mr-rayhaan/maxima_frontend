@@ -16,7 +16,9 @@
     "paths": {
       "@/*": ["./src/*"],
       "@apis/*": ["./src/config/api/*"]
-    }
+    },
+    "noImplicitAny": false,
+    "allowJs": true,
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "src/models/Book.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]

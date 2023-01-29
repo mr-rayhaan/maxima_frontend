@@ -1,15 +1,24 @@
 <script lang="ts">
-import BooksApi from "@apis/Books";
-import * as ApiGenerate from "../config/ApiGenerate";
 import axios from "axios";
 import Book from "@/models/Book";
+import EditBookModal from "../components/EditBookModal.vue";
+import DeleteBookModal from "@/components/DeleteBookModal.vue";
 
 export default {
-  components: {},
+  components: { EditBookModal, DeleteBookModal },
+
+  inheritAttrs: false,
   data() {
     return {
       bookList: new Array<Book>(),
       loadingBooks: false,
+      apiFailed: false,
+      editIcon: "/src/assets/edit.png",
+      deleteIcon: "/src/assets/delete.png",
+      showEditModal: false,
+      selectedBookEdit: null,
+      showDeleteModal: false,
+      selectedBookDelete: null,
     };
   },
   created() {
@@ -26,9 +35,42 @@ export default {
         console.log(response.data);
       } catch (e) {
         console.log(e);
+        this.apiFailed = true;
       } finally {
         this.loadingBooks = false;
       }
+    },
+    closeEditModal() {
+      this.showEditModal = !this.showEditModal;
+      this.selectedBookEdit = null;
+    },
+    onConfirmedEdit(data: any) {
+      console.log("onConfirmedEdit", data);
+      this.bookList = this.bookList.map((e) => {
+        return e.id === data.id ? data : e;
+      });
+    },
+    closeDeleteModal() {
+      this.showDeleteModal = !this.showDeleteModal;
+      this.selectedBookDelete = null;
+    },
+    onConfirmedDelete(item: any) {
+      this.bookList = this.bookList.filter((book) => {
+        return book.id !== item.id;
+      });
+      console.log(this.bookList);
+    },
+    showModalDialog(data: any, dialog: string) {
+      if (dialog === "edit") {
+        this.selectedBookEdit = data;
+        this.showEditModal = !this.showEditModal;
+      } else {
+        this.selectedBookDelete = data;
+        this.showDeleteModal = !this.showDeleteModal;
+      }
+    },
+    openPdf(pdfUrl: string) {
+      window.open(pdfUrl);
     },
   },
 };
@@ -39,10 +81,10 @@ export default {
     <div class="bodySection">
       <h1>Manage Books</h1>
       <div class="border"></div>
-      <div class="bookSection">
-        <!-- <div class="container bootstrap snippets bootdeys"> -->
-        <!-- <div class="row"> -->
-        <!-- <div class="col-md-4 col-sm-6 content-card"> -->
+      <div
+        v-if="!apiFailed && bookList.length > 0 && !loadingBooks"
+        class="bookSection"
+      >
         <div
           v-for="(item, index) in bookList"
           :key="index"
@@ -50,151 +92,107 @@ export default {
         >
           <div
             class="card card-just-text"
-            :style="{ backgroundImage: `url(${item.image_url})` }"
             data-background="color"
             data-color="blue"
             data-radius="none"
           >
+            <img
+              :src="item.image_url"
+              style="
+                width: 100%;
+                object-fit: cover;
+                opacity: 0.7;
+                min-height: 100%;
+              "
+              class="bookImage"
+            />
+            <div class="optionsRead">
+              <img src="../assets/read.png" @click="openPdf(item.pdf_url)" />
+            </div>
+            <div class="optionsMenu">
+              <img
+                src="../assets/edit.png"
+                style="cursor: pointer"
+                @click="showModalDialog(item, 'edit')"
+              />
+              <img
+                src="../assets/delete.png"
+                style="cursor: pointer"
+                @click="showModalDialog(item, 'delete')"
+              />
+            </div>
             <div class="content">
-              <h6 class="category">{{ item.title }}</h6>
+              <h1 class="category glowText overflowText">{{ item.title }}</h1>
               <!-- <h4 class="title"><a href="#">Blue Card</a></h4> -->
-              <p class="description">
+              <p class="description glowText overflowText">
                 {{ item.description }}
               </p>
             </div>
           </div>
-          <!-- end card -->
         </div>
-        <!-- </div> -->
-
-        <!--<div class="col-md-4 col-sm-6 content-card">
-          <div class="card-big-shadow">
-            <div
-              class="card card-just-text"
-              data-background="color"
-              data-color="green"
-              data-radius="none"
-            >
-              <div class="content">
-                <h6 class="category">Best cards</h6>
-                <h4 class="title"><a href="#">Green Card</a></h4>
-                <p class="description">
-                  What all of these have in common is that they're pulling
-                  information out of the app or the service and making it
-                  relevant to the moment.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-         <div class="col-md-4 col-sm-6 content-card">
-          <div class="card-big-shadow">
-            <div
-              class="card card-just-text"
-              data-background="color"
-              data-color="yellow"
-              data-radius="none"
-            >
-              <div class="content">
-                <h6 class="category">Best cards</h6>
-                <h4 class="title"><a href="#">Yellow Card</a></h4>
-                <p class="description">
-                  What all of these have in common is that they're pulling
-                  information out of the app or the service and making it
-                  relevant to the moment.
-                </p>
-              </div>
-            </div> 
-          </div>
-        </div>
-
-        <div class="col-md-4 col-sm-6 content-card">
-          <div class="card-big-shadow">
-            <div
-              class="card card-just-text"
-              data-background="color"
-              data-color="brown"
-              data-radius="none"
-            >
-              <div class="content">
-                <h6 class="category">Best cards</h6>
-                <h4 class="title"><a href="#">Brown Card</a></h4>
-                <p class="description">
-                  What all of these have in common is that they're pulling
-                  information out of the app or the service and making it
-                  relevant to the moment.
-                </p>
-              </div>
-            </div> 
-          </div>
-        </div>
-
-        <div class="col-md-4 col-sm-6 content-card">
-          <div class="card-big-shadow">
-            <div
-              class="card card-just-text"
-              data-background="color"
-              data-color="purple"
-              data-radius="none"
-            >
-              <div class="content">
-                <h6 class="category">Best cards</h6>
-                <h4 class="title"><a href="#">Purple Card</a></h4>
-                <p class="description">
-                  What all of these have in common is that they're pulling
-                  information out of the app or the service and making it
-                  relevant to the moment.
-                </p>
-              </div>
-            </div> 
-          </div>
-        </div>
-
-        <div class="col-md-4 col-sm-6 content-card">
-          <div class="card-big-shadow">
-            <div
-              class="card card-just-text"
-              data-background="color"
-              data-color="orange"
-              data-radius="none"
-            >
-              <div class="content">
-                <h6 class="category">Best cards</h6>
-                <h4 class="title"><a href="#">Orange Card</a></h4>
-                <p class="description">
-                  What all of these have in common is that they're pulling
-                  information out of the app or the service and making it
-                  relevant to the moment.
-                </p>
-              </div>
-            </div> 
-          </div>
-        </div> -->
-        <!-- </div> -->
-        <!-- </div> -->
+      </div>
+      <div v-else-if="loadingBooks">LOADING</div>
+      <div v-else-if="bookList.length == 0" class="noBooks">
+        <p>No books in store</p>
+      </div>
+      <div v-else>
+        <img src="../assets/404.png" />
       </div>
     </div>
   </div>
+  <EditBookModal
+    :showEditModal="showEditModal"
+    :selectedBookEdit="selectedBookEdit"
+    @close-modal="closeEditModal"
+    @confirmed-edit="onConfirmedEdit"
+  />
+  <DeleteBookModal
+    :showDeleteModal="showDeleteModal"
+    :selectedBookDelete="selectedBookDelete"
+    @close-modal="closeDeleteModal"
+    @confirmed-delete="onConfirmedDelete"
+  />
 </template>
 
 <style scoped lang="scss">
 .wrapper {
   background-color: aliceblue;
 }
+
 h1 {
   color: black;
   font-size: 1.5rem;
 }
+.overflowText {
+  overflow: hidden;
+  -webkit-line-clamp: 1;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+}
 .bodySection {
   background-color: white;
-  margin: 1rem auto;
+  margin: 1rem;
   padding: 1rem;
   border-radius: 0.2rem;
+  min-height: 100%;
 }
+
 .bookSection {
   padding: 1rem;
+  display: grid;
+  max-width: 1500px;
+  justify-content: center;
+  grid-template-columns: repeat(3, 25%);
+  column-gap: 5rem;
+  row-gap: 50px;
+  margin: 0 auto;
 }
+
+.noBooks {
+  display: flex;
+  justify-content: center;
+}
+
 .border {
   height: 1px;
   background-color: lightgrey;
@@ -206,25 +204,31 @@ body {
 }
 
 .card-big-shadow {
-  max-width: 320px;
+  max-width: 300px;
+  max-height: 300px;
+  min-height: 150px;
   position: relative;
-}
-
-.coloured-cards .card {
-  margin-top: 30px;
 }
 
 .card[data-radius="none"] {
   border-radius: 0px;
 }
+
 .card {
   border-radius: 8px;
   box-shadow: 0 2px 2px rgba(204, 197, 185, 0.5);
   background-color: #ffffff;
   color: #252422;
-  margin-bottom: 20px;
   position: relative;
   z-index: 1;
+  width: 100%;
+  height: 100%;
+
+  &:hover {
+    transform: scale(1.1);
+    z-index: 100;
+    transition-duration: 1s;
+  }
 }
 
 .card[data-background="image"] .title,
@@ -245,13 +249,18 @@ body {
 .card[data-background="color"] .content a {
   color: #ffffff;
 }
+
 .card.card-just-text .content {
-  padding: 50px 65px;
-  text-align: center;
+  position: absolute;
+  bottom: 0;
+  background-color: #00000082;
+  width: 100%;
 }
+
 .card .content {
-  padding: 20px 20px 10px 20px;
+  padding: 2vw 2vh 0px 2vh;
 }
+
 .card[data-color="blue"] .category {
   color: #7a9e9f;
 }
@@ -260,7 +269,10 @@ body {
 .card .label {
   font-size: 14px;
   margin-bottom: 0px;
+  text-transform: uppercase;
+  font-weight: bolder;
 }
+
 .card-big-shadow:before {
   background-image: url("http://static.tumblr.com/i21wc39/coTmrkw40/shadow.png");
   background-position: center bottom;
@@ -276,86 +288,56 @@ body {
   z-index: 0;
 }
 
-h4,
-.h4 {
-  font-size: 1.5em;
-  font-weight: 600;
-  line-height: 1.2em;
-}
-h6,
-.h6 {
-  font-size: 0.9em;
-  font-weight: 600;
-  text-transform: uppercase;
-}
 .card .description {
   font-size: 16px;
   color: #66615b;
 }
-.content-card {
-  margin-top: 30px;
-}
+
 a:hover,
 a:focus {
   text-decoration: none;
 }
 
+.bookImage :hover {
+  opacity: 1 !important;
+}
+
+.card :hover + .bookImage {
+  background: #ccc;
+}
+
 /*======== COLORS ===========*/
-.card[data-color="blue"] {
-  background: #b8d8d8;
-  // background-image: url("https://picsum.photos/200/300");
-}
-.card[data-color="blue"] .description {
-  color: #506568;
+
+.glowText {
+  color: #fff !important;
+  text-shadow: 1px 1px 10px #fff, 1px 1px 100px #ccc;
 }
 
-.card[data-color="green"] {
-  background: #d5e5a3;
+.optionsMenu {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  max-width: 20px;
 }
-.card[data-color="green"] .description {
-  color: #60773d;
+.optionsRead {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  max-width: 50px;
+  cursor: pointer;
 }
-.card[data-color="green"] .category {
-  color: #92ac56;
+@media only screen and (max-width: 1300px) {
+  .bookSection {
+    grid-template-columns: repeat(2, 40%);
+    column-gap: 2rem;
+    row-gap: 50px;
+  }
 }
-
-.card[data-color="yellow"] {
-  background: #ffe28c;
-}
-.card[data-color="yellow"] .description {
-  color: #b25825;
-}
-.card[data-color="yellow"] .category {
-  color: #d88715;
-}
-
-.card[data-color="brown"] {
-  background: #d6c1ab;
-}
-.card[data-color="brown"] .description {
-  color: #75442e;
-}
-.card[data-color="brown"] .category {
-  color: #a47e65;
-}
-
-.card[data-color="purple"] {
-  background: #baa9ba;
-}
-.card[data-color="purple"] .description {
-  color: #3a283d;
-}
-.card[data-color="purple"] .category {
-  color: #5a283d;
-}
-
-.card[data-color="orange"] {
-  background: #ff8f5e;
-}
-.card[data-color="orange"] .description {
-  color: #772510;
-}
-.card[data-color="orange"] .category {
-  color: #e95e37;
+@media only screen and (max-width: 900px) {
+  .bookSection {
+    grid-template-columns: repeat(1, 75%);
+    column-gap: 1rem;
+    row-gap: 50px;
+  }
 }
 </style>

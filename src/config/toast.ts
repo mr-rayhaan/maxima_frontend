@@ -1,6 +1,6 @@
-import { useToast } from "vue-toastification";
+import { POSITION, useToast } from "vue-toastification";
 
-export const showToast = function (status, message, position='top-center') {
+export const showToast = function (status, message, position= POSITION.TOP_CENTER) {
     const toast = useToast();
     if (status === "success") {
       toast.success(message, {
